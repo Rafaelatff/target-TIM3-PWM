@@ -141,10 +141,11 @@ After configuring the APB1 Timer clock, we need to configure the presscaler that
 
 ![image](https://user-images.githubusercontent.com/58916022/225420040-68452c80-7d32-4733-9c30-e25c14935063.png)
 
-The prescaler value is used to slow down the TIM_CLK (TIM_CLK = 50 MHz, prescaler = 1, then TIM_CNT_CLK = TIM_CLK/ 1+ prescaler = 25 MHz). Once we need a 2731 Hz, we can use a prescaler of 22999, to have 64 M / 230000 = 2782 Hz. Or we can say it is 0.0003594 seconds (3.5 us).
+The prescaler value is used to slow down the TIM_CLK (TIM_CLK = 50 MHz, prescaler = 1, then TIM_CNT_CLK = TIM_CLK/ 1+ prescaler = 25 MHz). Once we need a 2731 Hz, that is a lot smaller than 64 MHz we can use a prescaler of 9999, just to have a smaller frequency value to our clock timer. We will have 64 M / 10000 = 6400 Hz. Or we can say it is 0.0001562 seconds (1.562 us).
 
+* htim3.Init.Prescaler = 9999;  
 * htim3.Init.CounterMode = TIM_COUNTERMODE_UP; -> only option in basic timers, in our case its okay to use this option.
-* htim3.Init.Period = 65535;
+* htim3.Init.Period = 1;
 
 Now just a small reminder:
 
@@ -161,14 +162,72 @@ Period is the value of this block:
 Period value is copied to the ARR - Auto Reload Register, to generate the clock cycles. Both are 16 bits (value between 0x0000 to 0xFFFF). Both values cannot be 0, or the timer won't start.
 
 * TIM_CLK = 64 MHZ
-* CNT_CLK = 2782 Hz = 0.0003594 seconds (3.5 us)
+* CNT_CLK = 6400 Hz = 0.0001562 seconds (3.5 us)
 * We need 2731 Hz = 0.0003661 seconds.
-* So, period will be 0.0003661/0.0003594 = 1.018 (lets use 1).
+* So, period will be 0.0003661/0.0001562 = 2.34379 (lets use 2 -> 3201 Hz).
 
-So we also change period:
-
-* htim3.Init.Period = 1;
+(NOTE: period cannot be 1. pulse variable is the % of the value.)
 
 (TIP: create a excell sheet to quickly calculate this)
 
+This way, we have configured the **HAL_TIM_PWM_Init(&htim3)**.
+
 ## PWM configurations
+
+Now lets configure the **HAL_TIM_PWM_ConfigChannel**. For that, we need to configure the *TIM_OC_InitTypeDef* sConfigOC (output compare). Lesson 94 explains how it works.
+
+```c
+/**
+  * @brief  TIM Output Compare Configuration Structure definition
+  */
+typedef struct
+{
+  uint32_t OCMode;        /*!< Specifies the TIM mode.
+                               This parameter can be a value of @ref TIM_Output_Compare_and_PWM_modes */
+
+  uint32_t Pulse;         /*!< Specifies the pulse value to be loaded into the Capture Compare Register.
+                               This parameter can be a number between Min_Data = 0x0000 and Max_Data = 0xFFFF */
+
+  uint32_t OCPolarity;    /*!< Specifies the output polarity.
+                               This parameter can be a value of @ref TIM_Output_Compare_Polarity */
+
+  uint32_t OCNPolarity;   /*!< Specifies the complementary output polarity.
+                               This parameter can be a value of @ref TIM_Output_Compare_N_Polarity
+                               @note This parameter is valid only for timer instances supporting break feature. */
+
+  uint32_t OCFastMode;    /*!< Specifies the Fast mode state.
+                               This parameter can be a value of @ref TIM_Output_Fast_State
+                               @note This parameter is valid only in PWM1 and PWM2 mode. */
+
+
+  uint32_t OCIdleState;   /*!< Specifies the TIM Output Compare pin state during Idle state.
+                               This parameter can be a value of @ref TIM_Output_Compare_Idle_State
+                               @note This parameter is valid only for timer instances supporting break feature. */
+
+  uint32_t OCNIdleState;  /*!< Specifies the TIM Output Compare pin state during Idle state.
+                               This parameter can be a value of @ref TIM_Output_Compare_N_Idle_State
+                               @note This parameter is valid only for timer instances supporting break feature. */
+} TIM_OC_InitTypeDef;
+```
+
+Next the 3 main parameters.
+
+* sConfigOC.OCMode = TIM_OCMODE_PWM1;
+* sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+
+Polarity high means pulse calcule will be based on high percentage of duty cycle.
+
+* sConfigOC.Pulse = 1;
+
+The duty cycle is configured by configuring the pulse value (that depends on period and ARR value).
+
+* to use 40% duty cycle
+* pulse (CCR1) = ARR * (40/100)
+* pulse (CCR1) = period * %
+* example: sConfigOC.Pulse = (htim3.Init.Period * 40); to use 40% duty cycle.
+
+And to finish, inside the main() source file, we pass the parameters and call TIM_CHANNEL_4.
+
+```c
+if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4)!= HAL_OK) Error_Handler();
+```
