@@ -82,6 +82,8 @@ The generated code, using STM32CubeMX for TIM 3 were:
   }
 ```
 
+## Configuring the bus timer clock (APB1 timer clock)
+
 So the code: (lesson 65 of the course explains how to configure)
 
 * htim3.Instance = TIM3;  -> configure the hw to use timer 3
@@ -133,7 +135,40 @@ But timer uses a multiplier, to multiply the APB1 frequency.
 
 The **multiplier value** is according to **D2PPRE1 value**, and can be 1 or 2 only (is 1, only if D2PPRE1 is also 1).
 
+## Configuring the period for timer (and PWM eventually)
 
-The prescaler value is used to slow down the TIM_CLK (TIM_CLK = 50 MHz, prescaler = 1, then TIM_CNT_CLK = TIM_CLK/ 1+ prescaler = 25 MHz).
+After configuring the APB1 Timer clock, we need to configure the presscaler that comes with the timer clock itself (64 MHz). Acording to the following image (Reference manual), TIMxCLK from RCC or CK_INT = CK_PSC. Then the prescaler PSC comes and its output (CNT_CLK ou counter clock) = TIMx_CLK / (prescaler +1).
 
-* htim3.Init.CounterMode = TIM_COUNTERMODE_UP; -> only option in basic timers, 
+![image](https://user-images.githubusercontent.com/58916022/225420040-68452c80-7d32-4733-9c30-e25c14935063.png)
+
+The prescaler value is used to slow down the TIM_CLK (TIM_CLK = 50 MHz, prescaler = 1, then TIM_CNT_CLK = TIM_CLK/ 1+ prescaler = 25 MHz). Once we need a 2731 Hz, we can use a prescaler of 22999, to have 64 M / 230000 = 2782 Hz. Or we can say it is 0.0003594 seconds (3.5 us).
+
+* htim3.Init.CounterMode = TIM_COUNTERMODE_UP; -> only option in basic timers, in our case its okay to use this option.
+* htim3.Init.Period = 65535;
+
+Now just a small reminder:
+
+```c
+  uint32_t Period;            /*!< Specifies the period value to be loaded into the active
+                                   Auto-Reload Register at the next update event.
+                                   This parameter can be a number between Min_Data = 0x0000 and Max_Data = 0xFFFF.  */
+```
+
+Period is the value of this block:
+
+![image](https://user-images.githubusercontent.com/58916022/225423314-fbe89917-33d8-4398-b5d3-ff107ac3a8fb.png)
+
+Period value is copied to the ARR - Auto Reload Register, to generate the clock cycles. Both are 16 bits (value between 0x0000 to 0xFFFF). Both values cannot be 0, or the timer won't start.
+
+* TIM_CLK = 64 MHZ
+* CNT_CLK = 2782 Hz = 0.0003594 seconds (3.5 us)
+* We need 2731 Hz = 0.0003661 seconds.
+* So, period will be 0.0003661/0.0003594 = 1.018 (lets use 1).
+
+So we also change period:
+
+* htim3.Init.Period = 1;
+
+(TIP: create a excell sheet to quickly calculate this)
+
+## PWM configurations
