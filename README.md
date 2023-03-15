@@ -95,23 +95,44 @@ And the clock frequencies according to Reference Manual are:
 
 ![image](https://user-images.githubusercontent.com/58916022/225404135-4a3bed7b-c8ec-4671-877a-ff3368a79d23.png)
 
-Following the 'RCC clock configuration register (RCC_CFGR)' and 'RCC domain 2 clock configuration register (RCC_D2CFGR)', we have the bits 6:4 that configure the 'D2PPRE1[2:0]: D2 domain APB1 prescaler'.
+The clock three (that comes with STM32CubeMX) is showed next:
 
-![image](https://user-images.githubusercontent.com/58916022/225405269-f4c5e494-bc1f-491d-9c1e-06f1f7ed617a.png)
-
-![image](https://user-images.githubusercontent.com/58916022/225405893-d91868e1-447c-4200-83a1-214058261c06.png)
-
-Before this clock we have the HPRE prescaler that is responsable for divide the CPU clock by its values. CPU value = SYSCLK / D1CPRE prescaler.
-
-![image](https://user-images.githubusercontent.com/58916022/225406981-2c9feb95-115d-41b5-986a-972331e1e637.png)
-
-![image](https://user-images.githubusercontent.com/58916022/225407140-a5226113-f535-4eda-9649-0f8587e023de.png)
+![image](https://user-images.githubusercontent.com/58916022/225408436-d24b70a6-2000-4ce6-a767-4b74d1e46800.png)
 
 Then, the first prescaler that passes thought the SYSCLK, is the D1CPRE, shower next:
 
 ![image](https://user-images.githubusercontent.com/58916022/225407883-3dda4f56-a872-45fb-96fd-404c30562cc0.png)
 
 ![image](https://user-images.githubusercontent.com/58916022/225408005-e6d8b5e6-9390-4efc-8421-8fbb97a62403.png)
+
+After this clock we have the HPRE prescaler that is responsable for divide the CPU clock by its values. CPU value = SYSCLK / D1CPRE prescaler.
+
+![image](https://user-images.githubusercontent.com/58916022/225406981-2c9feb95-115d-41b5-986a-972331e1e637.png)
+
+![image](https://user-images.githubusercontent.com/58916022/225407140-a5226113-f535-4eda-9649-0f8587e023de.png)
+
+Following the 'RCC clock configuration register (RCC_CFGR)' and 'RCC domain 2 clock configuration register (RCC_D2CFGR)', we have the bits 6:4 that configure the 'D2PPRE1[2:0]: D2 domain APB1 prescaler'.
+
+![image](https://user-images.githubusercontent.com/58916022/225405269-f4c5e494-bc1f-491d-9c1e-06f1f7ed617a.png)
+
+![image](https://user-images.githubusercontent.com/58916022/225405893-d91868e1-447c-4200-83a1-214058261c06.png)
+
+PCLK1 is equal to the APB1 bus. If we debug and ask for the PCL1, as shown next:
+
+```c
+ printf("PCLK1: %ld\r\n", HAL_RCC_GetPCLK1Freq());
+```
+
+We will have as results:
+
+![image](https://user-images.githubusercontent.com/58916022/225409749-716d8fbb-b4b5-45d3-8fc3-2c148fd992a5.png)
+
+But timer uses a multiplier, to multiply the APB1 frequency.
+
+![image](https://user-images.githubusercontent.com/58916022/225410126-e396e770-344b-4871-88ab-08ef6ada80ae.png)
+
+The **multiplier value** is according to **D2PPRE1 value**, and can be 1 or 2 only (is 1, only if D2PPRE1 is also 1).
+
 
 The prescaler value is used to slow down the TIM_CLK (TIM_CLK = 50 MHz, prescaler = 1, then TIM_CNT_CLK = TIM_CLK/ 1+ prescaler = 25 MHz).
 
