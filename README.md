@@ -231,3 +231,9 @@ And to finish, inside the main() source file, we pass the parameters and call TI
 ```c
 if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4)!= HAL_OK) Error_Handler();
 ```
+
+## Excel sheet
+
+To easy calculation, I prepared an excell sheet.
+
+![image](https://user-images.githubusercontent.com/58916022/225618679-79e836f3-8a10-4e12-994f-87ebe8c8ceb7.png)
