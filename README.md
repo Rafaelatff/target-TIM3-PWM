@@ -237,3 +237,8 @@ if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4)!= HAL_OK) Error_Handler();
 To easy calculation, I prepared an excell sheet.
 
 ![image](https://user-images.githubusercontent.com/58916022/225618679-79e836f3-8a10-4e12-994f-87ebe8c8ceb7.png)
+
+## Results
+
+![image](https://user-images.githubusercontent.com/58916022/225944321-cb36a40c-2d77-487b-8ff8-1cd9908888ad.png)
+
