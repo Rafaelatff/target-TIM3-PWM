@@ -127,6 +127,8 @@ PCLK1 is equal to the APB1 bus. If we debug and ask for the PCL1, as shown next:
 
 We will have as results:
 
+NOTE: in pulse I changed to 1, to have the minimum possible duty cycle and noise.
+
 ![image](https://user-images.githubusercontent.com/58916022/225409749-716d8fbb-b4b5-45d3-8fc3-2c148fd992a5.png)
 
 But timer uses a multiplier, to multiply the APB1 frequency.
